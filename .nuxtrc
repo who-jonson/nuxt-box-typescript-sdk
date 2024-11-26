@@ -1,0 +1,4 @@
+telemetry.enabled=false
+typescript.strict=false
+typescript.includeWorkspace=true
+future.typescriptBundlerResolution=true
