@@ -31,7 +31,8 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.14.0",
-    "@whoj/utils-core": "^2.0.0"
+    "@whoj/utils-core": "^2.0.0",
+    "box-typescript-sdk-gen": "^1.7.0"
   },
   "peerDependencies": {
     "@nuxt/scripts": "^0.9.5"
@@ -48,8 +49,7 @@
     "nuxt": "^3.14.0",
     "typescript": "^5.6.2",
     "vitest": "^2.1.5",
-    "vue-tsc": "^2.1.10",
-    "box-typescript-sdk-gen": "^1.7.0"
+    "vue-tsc": "^2.1.10"
   },
   "pnpm": {
     "overrides": {

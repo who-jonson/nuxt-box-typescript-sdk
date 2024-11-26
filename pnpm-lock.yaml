@@ -17,6 +17,9 @@ importers:
       '@whoj/utils-core':
         specifier: ^2.0.0
         version: 2.0.0
+      box-typescript-sdk-gen:
+        specifier: ^1.7.0
+        version: 1.7.0
     devDependencies:
       '@nuxt/devtools':
         specifier: ^1.6.1
@@ -36,9 +39,6 @@ importers:
       '@types/node':
         specifier: ^22.9.3
         version: 22.9.3
-      box-typescript-sdk-gen:
-        specifier: ^1.7.0
-        version: 1.7.0
       changelogen:
         specifier: ^0.5.7
         version: 0.5.7(magicast@0.3.5)
