@@ -6,7 +6,7 @@ import { array, maxLength, minLength, object, optional, picklist, pipe, string }
 
 const BoxSdkExports: Array<keyof typeof BoxSdk> = ['BoxClient', 'BoxCcgAuth', 'BoxDeveloperTokenAuth', 'BoxJwtAuth', 'CcgConfig', 'JwtConfig', 'BoxOAuth', 'OAuthConfig'] as const;
 
-export const BoxSdkOptions = object({
+const BoxSdkOptions = object({
   file: optional(string()),
   exports: optional(
     pipe(
@@ -25,7 +25,7 @@ export function useScriptBoxSdk<T extends BoxSdkInput>(_options?: T) {
     (options) => {
       return {
         scriptInput: {
-          id: 'box-typescript-sdk-gen',
+          id: 'nuxt-box-typescript-sdk',
           src: options.file || 'https://cdn.jsdelivr.net/npm/box-typescript-sdk-gen/lib/bundle.js'
         },
         schema: import.meta.dev ? BoxSdkOptions : undefined,

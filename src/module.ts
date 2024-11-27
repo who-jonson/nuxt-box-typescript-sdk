@@ -1,16 +1,22 @@
 import {
-  addTemplate,
   defineNuxtModule,
-  addPlugin,
   createResolver,
   hasNuxtModule,
   installModule,
   useLogger
 } from '@nuxt/kit';
-import type { ModuleOptions } from './options';
-import { setupScriptRegistry } from './registry';
+import { configureSdkOptions } from './_/config';
+import { setupScriptRegistry } from './_/registry';
+import type { BoxSdkOptions } from './runtime/shared/types';
 
 import { name, version } from './../package.json';
+
+export interface ModuleOptions extends BoxSdkOptions {
+  /**
+   * @default `true`
+   */
+  autoImports?: boolean;
+}
 
 const configKey = 'boxSdk' as const;
 const logger = useLogger(name);
@@ -30,7 +36,9 @@ export default defineNuxtModule<ModuleOptions>().with({
   async setup(options, nuxt) {
     const { resolve } = createResolver(import.meta.url);
 
-    nuxt.options.alias['#nuxt-box-sdk/shared'] = resolve('./runtime/shared/');
+    configureSdkOptions(options, nuxt);
+
+    nuxt.options.alias['#nuxt-box-sdk/shared'] = resolve('./runtime/shared/index');
 
     setupScriptRegistry(resolve, nuxt);
 
@@ -46,4 +54,10 @@ export default defineNuxtModule<ModuleOptions>().with({
   }
 });
 
-export type * from './options';
+export interface ModuleRuntimeConfig {
+  box: Omit<BoxSdkOptions, 'auth' | 'developer'>;
+}
+
+export interface ModulePublicRuntimeConfig {
+  box: Pick<BoxSdkOptions, 'auth' | 'developer'>;
+}

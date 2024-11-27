@@ -1,25 +1,26 @@
 import { withBase } from 'ufo';
 import { dirname } from 'pathe';
+import { promises } from 'node:fs';
 import { transform } from 'esbuild';
-import { existsSync, promises, rmSync } from 'node:fs';
 import { getProperty, setProperty } from '@whoj/utils-core';
-import { addTemplate, resolveModule, useNuxt } from '@nuxt/kit';
+import { addImports, addTemplate, resolveModule, useNuxt } from '@nuxt/kit';
 
 export function setupScriptRegistry(resolve: (...p: string[]) => string, nuxt = useNuxt()) {
+  const isDev = !!(nuxt.options.dev || nuxt.options._prepare);
+
   setProperty(
     nuxt.options.alias,
     '#nuxt-scripts-validator/extended',
-    resolve(`./runtime/validation/${(nuxt.options.dev || nuxt.options._prepare) ? 'valibot' : 'mock'}`)
+    resolve(`./runtime/validation/${isDev ? 'valibot' : 'mock'}`)
   );
 
   const buildPublicAssetUrl = (assetPath: string) => withBase(assetPath, nuxt.options.app.buildAssetsDir);
 
   nuxt.hook('nitro:config', (nitroConfig) => {
-    console.log(nuxt.options.dev);
-    if (!nuxt.options.dev) {
+    if (!isDev) {
       const { dst } = addTemplate({
         write: true,
-        filename: 'modules/box-typescript-sdk-gen/lib/bundle.js',
+        filename: 'modules/nuxt-box-typescript-sdk/lib/bundle.js',
         getContents: () => promises.readFile(resolveModule('box-typescript-sdk-gen/lib/bundle.js'), 'utf8')
           .then(str => transform(str, { minify: true, platform: 'browser' })
             .then(({ code }) => code))
@@ -28,7 +29,7 @@ export function setupScriptRegistry(resolve: (...p: string[]) => string, nuxt = 
       nitroConfig.publicAssets.push({
         dir: dirname(dst),
         maxAge: 60 * 60 * 24 * 365,
-        baseURL: buildPublicAssetUrl('box-typescript-sdk-gen/lib/')
+        baseURL: buildPublicAssetUrl('nuxt-box-typescript-sdk/lib/')
       });
     }
   });
@@ -38,8 +39,8 @@ export function setupScriptRegistry(resolve: (...p: string[]) => string, nuxt = 
       nuxt.options,
       'scripts.registry.boxSdk.file',
       buildPublicAssetUrl(
-        !nuxt.options.dev
-          ? 'box-typescript-sdk-gen/lib/bundle.js'
+        !isDev
+          ? 'nuxt-box-typescript-sdk/lib/bundle.js'
           : resolveModule('box-typescript-sdk-gen/lib/bundle.js')
       )
     );
@@ -52,13 +53,18 @@ export function setupScriptRegistry(resolve: (...p: string[]) => string, nuxt = 
       category: 'utility',
       import: {
         name: 'useScriptBoxSdk',
-        from: resolve('./runtime/scripts/box-sdk')
+        from: resolve('./runtime/registry/box-sdk')
       },
       src: buildPublicAssetUrl(
-        !nuxt.options.dev
-          ? 'box-typescript-sdk-gen/lib/bundle.js'
+        !isDev
+          ? 'nuxt-box-typescript-sdk/lib/bundle.js'
           : resolveModule('box-typescript-sdk-gen/lib/bundle.js')
       )
     });
+  });
+
+  addImports({
+    name: 'useScriptBoxSdk',
+    from: resolve('./runtime/registry/box-sdk')
   });
 }

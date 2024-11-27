@@ -7,6 +7,7 @@ export default defineBuildConfig({
   ],
   externals: [
     'ufo',
+    'defu',
     'pathe',
     'unenv',
     'esbuild',
