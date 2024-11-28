@@ -1,7 +1,7 @@
 import { defu } from 'defu';
 import { useNuxt } from '@nuxt/kit';
-import type { BoxSdkOptions } from '../runtime/shared/types';
-import { deleteProperty, isString, objectKeys, objectPick, setProperty } from '@whoj/utils-core';
+import type { BoxSdkOptions } from '../runtime/shared';
+import { deleteProperty, isString, objectPick, setProperty } from '@whoj/utils-core';
 
 export function configureSdkOptions(options: BoxSdkOptions, nuxt = useNuxt()) {
   const isDev = !!(nuxt.options.dev || nuxt.options._prepare);
@@ -61,12 +61,6 @@ export function configureSdkOptions(options: BoxSdkOptions, nuxt = useNuxt()) {
   else if (publicRuntimeConfig.developer) {
     deleteProperty(publicRuntimeConfig, 'developer');
   }
-
-  objectKeys(publicRuntimeConfig).forEach((key) => {
-    if (!/auth|developer/i.test(key)) {
-      deleteProperty(runtimeConfig, key);
-    }
-  });
 
   setProperty(nuxt.options.runtimeConfig, 'box', runtimeConfig);
   setProperty(nuxt.options.runtimeConfig, 'public.box', publicRuntimeConfig);

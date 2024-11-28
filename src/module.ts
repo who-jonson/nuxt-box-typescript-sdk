@@ -3,11 +3,12 @@ import {
   createResolver,
   hasNuxtModule,
   installModule,
-  useLogger
+  resolveModule
 } from '@nuxt/kit';
 import { configureSdkOptions } from './_/config';
+import { registerTemplates } from './_/templates';
 import { setupScriptRegistry } from './_/registry';
-import type { BoxSdkOptions } from './runtime/shared/types';
+import type { BoxSdkOptions } from './runtime/shared';
 
 import { name, version } from './../package.json';
 
@@ -19,7 +20,6 @@ export interface ModuleOptions extends BoxSdkOptions {
 }
 
 const configKey = 'boxSdk' as const;
-const logger = useLogger(name);
 
 export default defineNuxtModule<ModuleOptions>().with({
   meta: {
@@ -35,22 +35,23 @@ export default defineNuxtModule<ModuleOptions>().with({
   },
   async setup(options, nuxt) {
     const { resolve } = createResolver(import.meta.url);
+    const isDev = !!(nuxt.options.dev || nuxt.options._prepare);
 
-    configureSdkOptions(options, nuxt);
-
-    nuxt.options.alias['#nuxt-box-sdk/shared'] = resolve('./runtime/shared/index');
+    nuxt.options.build.transpile.push(resolve('./runtime/'));
 
     setupScriptRegistry(resolve, nuxt);
-
     if (!hasNuxtModule('@nuxt/scripts')) {
       await installModule('@nuxt/scripts');
     }
 
-    nuxt.options.build.transpile.push(
-      resolve('./runtime/')
-    );
+    configureSdkOptions(options, nuxt);
 
-    // addPlugin(resolve('./runtime/plugin'));
+    if (!isDev) {
+      nuxt.options.alias['node-fetch'] = resolveModule('unenv/runtime/npm/node-fetch');
+    }
+    nuxt.options.alias['#nuxt/box-typescript-sdk/utils'] = resolve('./runtime/shared/index');
+
+    registerTemplates(resolve, nuxt);
   }
 });
 
@@ -61,3 +62,5 @@ export interface ModuleRuntimeConfig {
 export interface ModulePublicRuntimeConfig {
   box: Pick<BoxSdkOptions, 'auth' | 'developer'>;
 }
+
+export type { NitroRuntimeHooks, RuntimeNuxtHooks } from './runtime/shared';

@@ -2,6 +2,7 @@ import type { OAuthConfigInput } from 'box-typescript-sdk-gen/lib/box/oauth.gene
 import type { CcgConfigInput } from 'box-typescript-sdk-gen/lib/box/ccgAuth.generated.js';
 import type { JwtConfigInput } from 'box-typescript-sdk-gen/lib/box/jwtAuth.generated.js';
 import type { BaseUrlsInput } from 'box-typescript-sdk-gen/lib/networking/baseUrls.generated.js';
+import type { Interceptor } from 'box-typescript-sdk-gen/lib/networking/interceptors.generated.js';
 import type { NetworkSessionInput } from 'box-typescript-sdk-gen/lib/networking/network.generated.js';
 import type { DeveloperTokenConfig } from 'box-typescript-sdk-gen/lib/box/developerTokenAuth.generated.js';
 
@@ -65,6 +66,16 @@ export interface BoxSdkOptions {
    * Can be provided as Environment Variable - BOX_DEVELOPER_TOKEN | NUXT_BOX_DEVELOPER_TOKEN | NUXT_PUBLIC_BOX_DEVELOPER_TOKEN
    */
   developer?: BoxDeveloperTokenConfig;
+}
+
+export interface RuntimeNuxtHooks {
+  'box:request:before': Interceptor['beforeRequest'];
+  'box:request:after': Interceptor['afterRequest'];
+}
+
+export interface NitroRuntimeHooks {
+  'box:beforeRequest': Interceptor['beforeRequest'];
+  'box:afterRequest': Interceptor['afterRequest'];
 }
 
 export {};

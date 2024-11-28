@@ -31,6 +31,7 @@ export default createConfigForNuxt({
         'comma-dangle': ['error', 'never'],
         '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/no-unused-vars': 'warn',
+        '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-unused-expressions': 'off',
         'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',

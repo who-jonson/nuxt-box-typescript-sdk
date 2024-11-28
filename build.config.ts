@@ -1,10 +1,6 @@
 import { defineBuildConfig } from 'unbuild';
 
 export default defineBuildConfig({
-  // alias,
-  entries: [
-    // './src/lib/mock'
-  ],
   externals: [
     'ufo',
     'defu',
@@ -17,9 +13,4 @@ export default defineBuildConfig({
     '\'#nuxt-scripts-utils\''
   ],
   failOnWarn: false
-  // rollup: {
-  //   esbuild: {
-  //
-  //   }
-  // }
 });
