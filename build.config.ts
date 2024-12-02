@@ -8,7 +8,9 @@ export default defineBuildConfig({
     'unenv',
     'esbuild',
     'valibot',
+    'magic-string',
     '@nuxt/scripts',
+    '@rollup/pluginutils',
     '\'#nuxt-scripts\'',
     '\'#nuxt-scripts-utils\''
   ],

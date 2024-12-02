@@ -1,49 +1,48 @@
 import { defu } from 'defu';
 import { useNuxt } from '@nuxt/kit';
-import type { BoxSdkOptions } from '../runtime/shared';
-import { deleteProperty, isString, objectPick, setProperty } from '@whoj/utils-core';
+import type { ModuleOptions } from '../module';
+import { deleteProperty, isString, setProperty } from '@whoj/utils-core';
 
-export function configureSdkOptions(options: BoxSdkOptions, nuxt = useNuxt()) {
+export function configureSdkOptions(options: ModuleOptions, nuxt = useNuxt()) {
   const isDev = !!(nuxt.options.dev || nuxt.options._prepare);
 
-  const runtimeConfig: Omit<BoxSdkOptions, 'auth' | 'developer'> = defu(
+  const runtimeConfig = defu(
     (nuxt.options.runtimeConfig.box || {}),
     {
-      ...objectPick(options, ['ccg', 'jwt', 'oauth'])
-    },
-    {
-      ccg: {
+      ccg: options.ccg ?? {
         clientId: '',
-        clientSecret: ''
+        clientSecret: '',
+        enterpriseId: '',
+        userId: ''
       },
       // @ts-ignore
-      jwt: {
+      jwt: options.jwt ?? {
         clientId: '',
         clientSecret: '',
         jwtKeyId: '',
         privateKey: '',
         privateKeyPassphrase: '',
         enterpriseId: '',
-        userId: undefined,
+        userId: '',
         algorithm: undefined,
-        configFile: ''
+        configFile: '',
+        configJson: ''
       },
-      oauth: {
+      oauth: options.oauth ?? {
         clientId: '',
         clientSecret: ''
-      }
-    }
+      },
+      tokenStorage: options.tokenStorage ?? null
+    } satisfies Pick<ModuleOptions, 'ccg' | 'jwt' | 'oauth' | 'tokenStorage'>
   );
 
-  const publicRuntimeConfig: Pick<BoxSdkOptions, 'auth' | 'developer'> = defu(
+  const publicRuntimeConfig = defu(
     (nuxt.options.runtimeConfig.public.box || {}),
-    {
-      ...objectPick(options, ['auth', 'developer'])
-    },
-    {
-      auth: options.auth,
-      developer: options.developer || { token: '' }
-    }
+    { // @ts-ignore
+      auth: options.auth ?? '',
+      ...(isDev ? { developer: { token: '' }, debug: options.debug } : {}),
+      routes: options.routes ? options.routes : undefined
+    } satisfies Pick<ModuleOptions, 'auth' | 'debug' | 'developer' | 'routes'>
   );
 
   if (isDev) {
@@ -60,6 +59,10 @@ export function configureSdkOptions(options: BoxSdkOptions, nuxt = useNuxt()) {
   }
   else if (publicRuntimeConfig.developer) {
     deleteProperty(publicRuntimeConfig, 'developer');
+  }
+
+  if (options.routes && options.routes.token) {
+    options.routes.token.authType ||= publicRuntimeConfig.auth;
   }
 
   setProperty(nuxt.options.runtimeConfig, 'box', runtimeConfig);
