@@ -93,10 +93,12 @@ export function useBoxAuthConfig<T extends BoxAuthType>(auth?: T, config?: UseBo
   }
 
   if (auth !== 'dev' && !isTokenStorage(getProperty(config, 'tokenStorage'))) {
-    (config as any).tokenStorage = useBoxTokenStorage(
-      getProperty(config, 'tokenStorage'),
-      { auth }
-    );
+    config = Object.assign({}, config, {
+      tokenStorage: useBoxTokenStorage(
+        getProperty(config, 'tokenStorage'),
+        { auth }
+      )
+    });
   }
 
   if (auth === 'ccg') {

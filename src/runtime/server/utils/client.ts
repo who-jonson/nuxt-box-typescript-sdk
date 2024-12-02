@@ -13,7 +13,7 @@ import type { NetworkSessionInput } from 'box-typescript-sdk-gen/lib/networking/
 /**
  * @__NO_SIDE_EFFECTS__
  */
-export function useBoxClient<T extends Authentication = Authentication>(auth: T, session?: NetworkSession | BoxNetworkOptions): BoxClient<T>;
+export function useBoxClient<T extends Authentication = Authentication>(auth?: T, session?: NetworkSession | BoxNetworkOptions): BoxClient<T>;
 export function useBoxClient<T extends BoxAuthType = BoxAuthType>(auth?: T, authConfig?: UseBoxAuthConfigInput<T>, session?: NetworkSession | BoxNetworkOptions): BoxClient<UseBoxAuthReturns<T>>;
 export function useBoxClient(...args: any[]) {
   const client = new BoxClient({

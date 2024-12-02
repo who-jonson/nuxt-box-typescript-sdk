@@ -1,17 +1,22 @@
 import { withBase } from 'ufo';
+import { createBoxSdkError } from './_';
 import type { GetAuthorizeUrlOptions } from 'box-typescript-sdk-gen/lib/box/oauth.generated.js';
-import { defineEventHandler, getRequestURL, sendRedirect, useBoxClient, useNitroApp, useRuntimeConfig } from '#imports';
+import { getRequestURL, defineEventHandler, sendRedirect, useBoxClient, useNitroApp, useRuntimeConfig } from '#imports';
 
 export default defineEventHandler(async (event) => {
-  const client = useBoxClient('oauth');
+  try {
+    const client = useBoxClient('oauth');
 
-  const options = {
-    responseType: 'code',
-    redirectUri: withBase(getRequestURL(event).origin, useRuntimeConfig().public.box.routes?.redirect.path)
-  } satisfies GetAuthorizeUrlOptions;
+    const options = {
+      redirectUri: withBase(useRuntimeConfig().public.box.routes?.redirect.path, getRequestURL(event).origin)
+    } satisfies GetAuthorizeUrlOptions;
 
-  // @ts-ignore
-  await useNitroApp().hooks.callHook('box:login:before', options);
+    // @ts-ignore
+    await useNitroApp().hooks.callHook('box:login:before', { event, options });
 
-  return sendRedirect(event, client.auth.getAuthorizeUrl(options));
+    return sendRedirect(event, client.auth.getAuthorizeUrl(options));
+  }
+  catch (err) {
+    throw createBoxSdkError(err);
+  }
 });

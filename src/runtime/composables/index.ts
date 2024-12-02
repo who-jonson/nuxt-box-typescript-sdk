@@ -1,2 +1,2 @@
 export { useBoxAuth } from './auth';
-export { useBoxClient } from './client';
+export { createBoxClient, useBoxClient } from './client';

@@ -12,10 +12,10 @@ export function useBoxClient<T extends Authentication>(auth: T): BoxClient;
 export function useBoxClient<T extends TokenStorage>(tokenStorage: T): BoxClient;
 export function useBoxClient<T extends string | AccessToken>(token: T, config?: BoxTokenAuthConfig): BoxClient;
 export function useBoxClient(...args: any[]): BoxClient {
-  return invokeCachedFunction(createClient, ...args);
+  return invokeCachedFunction(createBoxClient, ...args);
 }
 
-function createClient(_auth?: string | AccessToken | Authentication | TokenStorage, config?: BoxTokenAuthConfig) {
+export function createBoxClient(_auth?: string | AccessToken | Authentication | TokenStorage, config?: BoxTokenAuthConfig) {
   let _client: BoxClient;
   if (isObject<Authentication>(_auth) && isFunction(_auth.retrieveToken)) {
     _client = new BoxClient({ auth: _auth });

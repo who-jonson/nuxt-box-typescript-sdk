@@ -1,3 +1,4 @@
+import { createBoxSdkError } from './_';
 import { defineEventHandler, getQuery, useBoxClient, useNitroApp } from '#imports';
 
 export default defineEventHandler<{
@@ -5,12 +6,18 @@ export default defineEventHandler<{
     code: string;
   };
 }>(async (event) => {
-  const client = useBoxClient('oauth');
+  try {
+    const client = useBoxClient('oauth');
 
-  const token = await client.auth.getTokensAuthorizationCodeGrant(
-    getQuery(event).code
-  );
+    const response = await client.auth.getTokensAuthorizationCodeGrant(
+      getQuery(event).code
+    );
 
-  // @ts-ignore
-  await useNitroApp().hooks.callHook('box:login:success', token);
+    // @ts-ignore
+    await useNitroApp().hooks.callHook('box:login:success', { event, response });
+    return;
+  }
+  catch (e) {
+    throw createBoxSdkError(e);
+  }
 });

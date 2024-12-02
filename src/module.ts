@@ -41,7 +41,7 @@ export interface ModuleOptions extends BoxSdkOptions {
     // Login Route
     login?: {
       /**
-       * @default '/box/authenticate'
+       * @default '/_box/authenticate'
        */
       path: string;
       /**
@@ -53,7 +53,7 @@ export interface ModuleOptions extends BoxSdkOptions {
     // Auth Redirect Route
     redirect?: {
       /**
-       * @default '/box/authenticate/callback'
+       * @default '/_box/authenticate/callback'
        */
       path: string;
       /**
@@ -112,11 +112,11 @@ export default defineNuxtModule<ModuleOptions>().with({
     routes: {
       login: {
         method: 'get' as const,
-        path: '/box/authenticate' as const
+        path: '/_box/authenticate' as const
       },
       redirect: {
         method: 'get' as const,
-        path: '/box/authenticate/callback' as const
+        path: '/_box/authenticate/callback' as const
       },
       token: {
         refresh: '/_box/token' as const,
@@ -145,7 +145,7 @@ export default defineNuxtModule<ModuleOptions>().with({
     registerTemplates(resolve, nuxt);
 
     if (options.mode !== 'server') {
-      addImports(['useBoxAuth', 'useBoxClient'].map(name => ({
+      addImports(['useBoxAuth', 'useBoxClient', 'createBoxClient'].map(name => ({
         name,
         from: resolve('./runtime/composables/index')
       })));
@@ -163,7 +163,7 @@ export default defineNuxtModule<ModuleOptions>().with({
         addServerHandler({
           route: options.routes.login.path,
           method: options.routes.login.method,
-          handler: resolve('./runtime/server/handler/login')
+          handler: resolve('./runtime/server/handlers/login')
         });
       }
 
@@ -171,7 +171,7 @@ export default defineNuxtModule<ModuleOptions>().with({
         addServerHandler({
           route: options.routes.redirect.path,
           method: options.routes.redirect.method,
-          handler: resolve('./runtime/server/handler/redirect')
+          handler: resolve('./runtime/server/handlers/redirect')
         });
       }
 
@@ -179,13 +179,13 @@ export default defineNuxtModule<ModuleOptions>().with({
         addServerHandler({
           method: 'get',
           route: options.routes.token.retrieve,
-          handler: resolve('./runtime/server/handler/token')
+          handler: resolve('./runtime/server/handlers/token')
         });
 
         addServerHandler({
           method: 'post',
           route: options.routes.token.refresh,
-          handler: resolve('./runtime/server/handler/token')
+          handler: resolve('./runtime/server/handlers/token')
         });
       }
     }
