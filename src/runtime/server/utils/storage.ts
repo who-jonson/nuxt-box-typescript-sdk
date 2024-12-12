@@ -1,7 +1,7 @@
-import { prefixStorage } from 'unstorage';
 import type { Storage } from 'unstorage';
-import { useNitroApp, useStorage } from '#imports';
-import { isString, isFunction } from '@whoj/utils-core';
+import { prefixStorage } from 'unstorage';
+import { isFunction, isString } from '@whoj/utils-core';
+import { useNitroApp, useStorage, useRuntimeConfig } from '#imports';
 import type { TokenStorage } from 'box-typescript-sdk-gen/lib/box/tokenStorage.generated.js';
 import type { AccessToken } from 'box-typescript-sdk-gen/lib/schemas/accessToken.generated.js';
 
@@ -27,11 +27,7 @@ class BoxTokenStorage implements TokenStorage {
   constructor(
     readonly storage: Storage<BoxTokenStorageData>,
     protected readonly config: BoxTokenStorageOptions = {}
-  ) {
-    if (this.config.auth?.length) {
-      this.storage = prefixStorage(storage, this.config.auth);
-    }
-  }
+  ) {}
 
   async store(token: AccessToken) {
     await this.storage.setItem(await this.getKey(), token);
@@ -39,7 +35,14 @@ class BoxTokenStorage implements TokenStorage {
   }
 
   async get() {
-    return (await this.storage.getItem(await this.getKey())) ?? undefined;
+    const key = await this.getKey();
+    const data = (await this.storage.getItem(key)) ?? undefined;
+    if (!data) return undefined;
+    return {
+      ...data,
+      meta: await this.storage.getMeta(key),
+      key
+    };
   }
 
   async clear() {
@@ -64,12 +67,18 @@ class BoxTokenStorage implements TokenStorage {
   }
 }
 
-export function useBoxTokenStorage(storage?: string | Storage, options?: BoxTokenStorageOptions): TokenStorage {
-  storage = !storage || isString(storage)
-    ? useStorage(storage)
+export function useBoxTokenStorage(storage: Storage | string = 'cache', options: BoxTokenStorageOptions = {}): TokenStorage {
+  const unstorage = !storage || isString(storage)
+    ? useStorage(storage ?? 'cache')
     : storage;
 
-  const boxStorage = prefixStorage<BoxTokenStorageData>(storage, 'box');
+  let base = 'box';
+  options.auth ||= useRuntimeConfig().public.box.auth;
+  if (options.auth?.length) {
+    base += `:${options.auth}`;
+  }
+
+  const boxStorage = prefixStorage<BoxTokenStorageData>(unstorage, base);
 
   return new BoxTokenStorage(boxStorage, options);
 }

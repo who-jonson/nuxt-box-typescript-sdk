@@ -31,24 +31,21 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.14.0",
-    "@whoj/utils-core": "^2.0.1",
-    "box-typescript-sdk-gen": "1.7.0"
-  },
-  "peerDependencies": {
-    "@nuxt/scripts": "^0.9.5"
+    "@whoj/utils-core": "^2.1.0",
+    "box-typescript-sdk-gen": "1.9.0"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^1.6.1",
-    "@nuxt/eslint-config": "^0.7.1",
+    "@nuxt/devtools": "^1.6.4",
+    "@nuxt/eslint-config": "^0.7.3",
     "@nuxt/module-builder": "^0.8.4",
     "@nuxt/schema": "^3.14.0",
-    "@nuxt/test-utils": "^3.14.4",
-    "@types/node": "^22.9.3",
+    "@nuxt/test-utils": "^3.15.1",
+    "@types/node": "^22.10.2",
     "changelogen": "^0.5.7",
-    "eslint": "^9.15.0",
+    "eslint": "^9.16.0",
     "nuxt": "^3.14.0",
     "typescript": "^5.6.2",
-    "vitest": "^2.1.5",
+    "vitest": "^2.1.8",
     "vue-tsc": "^2.1.10"
   },
   "pnpm": {
@@ -56,5 +53,5 @@
       "whatwg-url": "^14.0.0"
     }
   },
-  "packageManager": "pnpm@9.14.2"
+  "packageManager": "pnpm@9.15.0"
 }

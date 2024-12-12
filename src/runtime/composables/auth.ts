@@ -1,6 +1,6 @@
-// copied from: https://github.com/box/box-typescript-sdk-gen/blob/main/src/box/developerTokenAuth.generated.ts
 import { isObject } from '@whoj/utils-core';
-import { tryUseNuxtApp, useRequestFetch } from '#imports';
+import { useRequestEvent, useRuntimeConfig } from '#imports';
+import { useBoxAuth as useBoxProxyAuth } from '../shared/auth';
 import { BoxSdkError } from 'box-typescript-sdk-gen/lib/box/errors.js';
 import type { TokenStorage } from 'box-typescript-sdk-gen/lib/box/tokenStorage.generated.js';
 import type { Authentication } from 'box-typescript-sdk-gen/lib/networking/auth.generated.js';
@@ -19,12 +19,13 @@ export interface BoxTokenAuthOptions {
   tokenStorage?: TokenStorage;
 }
 
-class BoxTokenAuth implements Authentication {
+// copied from: https://github.com/box/box-typescript-sdk-gen/blob/main/src/box/developerTokenAuth.generated.ts
+export class BoxTokenAuth implements Authentication {
   readonly tokenStorage: TokenStorage;
 
   constructor({ token, tokenStorage }: BoxTokenAuthOptions = {}) {
     this.tokenStorage = tokenStorage ?? new InMemoryTokenStorage({
-      token: isObject<AccessToken>(token) ? token : { accessToken: token }
+      token: isObject<AccessToken>(token) ? token : { accessToken: token ?? '' }
     });
   }
 
@@ -60,23 +61,13 @@ class BoxTokenAuth implements Authentication {
  * @__NO_SIDE_EFFECTS__
  */
 export function useBoxAuth(options?: BoxTokenAuthOptions): Authentication {
-  const { routes } = tryUseNuxtApp()?.$config.public.box || {};
-
-  if (!options?.token && !options?.tokenStorage && routes && routes.token) {
-    return new (class extends BoxTokenAuth {
-      override async refreshToken(networkSession?: NetworkSession) {
-        const token = await useRequestFetch()<AccessToken>(routes.token.retrieve, { responseType: 'json', method: 'post' });
-        return token?.accessToken
-          ? token
-          : super.refreshToken(networkSession);
-      }
-    })({
-      tokenStorage: {
-        get() {
-          return useRequestFetch()<AccessToken>(routes.token.retrieve, { responseType: 'json', method: 'get' });
-        }
-      } as TokenStorage
-    });
+  if ((!options || (!options.token && !options.tokenStorage)) && useRuntimeConfig().public.box.proxy) {
+    if (import.meta.server) {
+      return useBoxProxyAuth({
+        tokenStorage: useRequestEvent().context.$box.resolveTokenStorage()
+      });
+    }
+    return new BoxTokenAuth({ token: 'token' });
   }
 
   return new BoxTokenAuth(options);

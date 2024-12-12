@@ -1,5 +1,4 @@
-import { createBoxSdkError } from './_';
-import { defineEventHandler, getQuery, useBoxClient, useNitroApp } from '#imports';
+import { defineEventHandler, getQuery, useNitroApp } from '#imports';
 
 export default defineEventHandler<{
   query: {
@@ -7,9 +6,9 @@ export default defineEventHandler<{
   };
 }>(async (event) => {
   try {
-    const client = useBoxClient('oauth');
+    const boxAuth = (await import('./../utils/auth')).useBoxOAuth()!;
 
-    const response = await client.auth.getTokensAuthorizationCodeGrant(
+    const response = await boxAuth.getTokensAuthorizationCodeGrant(
       getQuery(event).code
     );
 
@@ -18,6 +17,6 @@ export default defineEventHandler<{
     return;
   }
   catch (e) {
-    throw createBoxSdkError(e);
+    throw (await import('./_')).createBoxSdkError(e);
   }
 });

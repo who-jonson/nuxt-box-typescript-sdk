@@ -1,40 +1,48 @@
 import { defu } from 'defu';
-import { useNuxt } from '@nuxt/kit';
-import type { ModuleOptions } from '../module';
-import { deleteProperty, isString, setProperty } from '@whoj/utils-core';
+import { updateRuntimeConfig, useNuxt } from '@nuxt/kit';
+import { deleteProperty, isString } from '@whoj/utils-core';
+import type { ModuleOptions, ModuleRuntimeConfig, ModulePublicRuntimeConfig } from '../types';
 
 export function configureSdkOptions(options: ModuleOptions, nuxt = useNuxt()) {
   const isDev = !!(nuxt.options.dev || nuxt.options._prepare);
 
-  const runtimeConfig = defu(
-    (nuxt.options.runtimeConfig.box || {}),
-    {
-      ccg: options.ccg ?? {
-        clientId: '',
-        clientSecret: '',
-        enterpriseId: '',
-        userId: ''
-      },
-      // @ts-ignore
-      jwt: options.jwt ?? {
-        clientId: '',
-        clientSecret: '',
-        jwtKeyId: '',
-        privateKey: '',
-        privateKeyPassphrase: '',
-        enterpriseId: '',
-        userId: '',
-        algorithm: undefined,
-        configFile: '',
-        configJson: ''
-      },
-      oauth: options.oauth ?? {
-        clientId: '',
-        clientSecret: ''
-      },
-      tokenStorage: options.tokenStorage ?? null
-    } satisfies Pick<ModuleOptions, 'ccg' | 'jwt' | 'oauth' | 'tokenStorage'>
-  );
+  let runtimeConfig: ModuleRuntimeConfig['box'] = {};
+
+  if (options.ccg || options.auth === 'ccg') {
+    runtimeConfig.ccg = {
+      clientId: '',
+      clientSecret: '',
+      enterpriseId: '',
+      userId: '',
+      ...(options.ccg || {})
+    };
+  }
+
+  if (options.jwt || options.auth === 'jwt') { // @ts-ignore
+    runtimeConfig.jwt = {
+      clientId: '',
+      clientSecret: '',
+      jwtKeyId: '',
+      privateKey: '',
+      privateKeyPassphrase: '',
+      enterpriseId: '',
+      userId: '',
+      algorithm: undefined,
+      configFile: '',
+      configJson: '',
+      ...(options.jwt || {})
+    };
+  }
+
+  if (options.oauth || options.auth === 'oauth') {
+    runtimeConfig.oauth = {
+      clientId: '',
+      clientSecret: '',
+      ...(options.oauth || {})
+    };
+  }
+
+  runtimeConfig = defu((nuxt.options.runtimeConfig.box || {}), runtimeConfig);
 
   const publicRuntimeConfig = defu(
     (nuxt.options.runtimeConfig.public.box || {}),
@@ -42,8 +50,12 @@ export function configureSdkOptions(options: ModuleOptions, nuxt = useNuxt()) {
       auth: options.auth ?? '',
       ...(isDev ? { developer: { token: '' }, debug: options.debug } : {}),
       routes: options.routes ? options.routes : undefined
-    } satisfies Pick<ModuleOptions, 'auth' | 'debug' | 'developer' | 'routes'>
+    } satisfies ModulePublicRuntimeConfig['box']
   );
+
+  if (nuxt.options.ssr && options.mode !== 'client' && options.proxy !== false) {
+    publicRuntimeConfig.proxy = isString(options.proxy) ? options.proxy : '/_box/proxy';
+  }
 
   if (isDev) {
     const developerToken = import.meta.env.BOX_DEVELOPER_TOKEN
@@ -61,10 +73,10 @@ export function configureSdkOptions(options: ModuleOptions, nuxt = useNuxt()) {
     deleteProperty(publicRuntimeConfig, 'developer');
   }
 
-  if (options.routes && options.routes.token) {
-    options.routes.token.authType ||= publicRuntimeConfig.auth;
-  }
-
-  setProperty(nuxt.options.runtimeConfig, 'box', runtimeConfig);
-  setProperty(nuxt.options.runtimeConfig, 'public.box', publicRuntimeConfig);
+  updateRuntimeConfig({
+    box: runtimeConfig,
+    public: {
+      box: publicRuntimeConfig
+    }
+  });
 }

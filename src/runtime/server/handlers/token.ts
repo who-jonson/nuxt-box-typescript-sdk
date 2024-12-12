@@ -1,27 +1,26 @@
-import { createBoxSdkError } from './_';
 import type { BoxAuthType } from '#nuxt/box-sdk/types';
-import { appendResponseHeader, defineEventHandler, useBoxClient, useRuntimeConfig } from '#imports';
+import { appendResponseHeader, defineEventHandler, useRuntimeConfig } from '#imports';
 
 export default defineEventHandler(async (event) => {
   try {
     const { auth, routes } = useRuntimeConfig(event).public.box;
     const authType = ((routes.token && routes.token.authType) || auth) as Exclude<BoxAuthType, 'dev'>;
 
-    // @ts-ignore
-    const client = useBoxClient(authType);
+    const boxAuth = (await import('./../utils/auth')).useBoxAuth(authType)!;
     const token = await (
       event.method === 'POST'
-        ? client.auth.refreshToken()
-        : client.auth.retrieveToken()
+        ? boxAuth.refreshToken()
+        : boxAuth.retrieveToken()
     );
 
     appendResponseHeader(event, 'content-type', 'application/json');
 
     return {
-      ...token
+      accessToken: token.accessToken,
+      expiresIn: token.expiresIn
     };
   }
   catch (err: any) {
-    throw createBoxSdkError(err);
+    throw (await import('./_')).createBoxSdkError(err);
   }
 });

@@ -1,10 +1,14 @@
+import type { Class } from '@whoj/utils-types';
 import type { BoxClient } from 'box-typescript-sdk-gen/lib/client.generated.js';
+import type { AgentOptions } from 'box-typescript-sdk-gen/lib/internal/utils.js';
 import type { OAuthConfigInput } from 'box-typescript-sdk-gen/lib/box/oauth.generated.js';
 import type { CcgConfigInput } from 'box-typescript-sdk-gen/lib/box/ccgAuth.generated.js';
-import type { BaseUrlsInput } from 'box-typescript-sdk-gen/lib/networking/baseUrls.generated.js';
+import type { ProxyConfig } from 'box-typescript-sdk-gen/lib/networking/proxyConfig.generated.js';
+import type { Interceptor } from 'box-typescript-sdk-gen/lib/networking/interceptors.generated.js';
 import type { NetworkSessionInput } from 'box-typescript-sdk-gen/lib/networking/network.generated.js';
 import type { JwtConfigInput, JwtConfigFile } from 'box-typescript-sdk-gen/lib/box/jwtAuth.generated.js';
 import type { DeveloperTokenConfig } from 'box-typescript-sdk-gen/lib/box/developerTokenAuth.generated.js';
+import type { BaseUrlsInput, BaseUrls } from 'box-typescript-sdk-gen/lib/networking/baseUrls.generated.js';
 
 export type BoxAuthType = 'dev' | 'jwt' | 'ccg' | 'oauth';
 
@@ -26,6 +30,22 @@ export interface BoxNetworkOptions extends Omit<NetworkSessionInput, 'baseUrls'>
   asUser?: string;
   baseUrls?: BaseUrlsInput;
   suppressNotifications?: boolean;
+}
+
+export interface ExtendedManager {
+  withAsUserHeader(userId: string): this;
+  withSuppressedNotifications(): this;
+  withExtraHeaders(extraHeaders?: { [key: string]: string }): this;
+  withCustomBaseUrls(baseUrlsInput: BaseUrlsInput): this;
+  withProxy(config: ProxyConfig): this;
+  withCustomAgentOptions(agentOptions: AgentOptions): this;
+  withInterceptors(interceptors: Interceptor[]): this;
+}
+
+export type BoxManager<T extends Class<any>> = InstanceType<T> & ExtendedManager;
+
+export interface BoxManagerNetworkSession extends Omit<NetworkSessionInput, 'baseUrls'> {
+  baseUrls?: BaseUrls | BaseUrlsInput;
 }
 
 export interface BoxSdkOptions {
@@ -90,6 +110,11 @@ export interface BoxSdkOptions {
     include?: Array<BoxManagerNames>;
 
     exclude?: Array<BoxManagerNames>;
+
+    /**
+     * @default true
+     */
+    composables?: boolean;
   };
 }
 
